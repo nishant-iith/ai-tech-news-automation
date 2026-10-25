@@ -1,0 +1,55 @@
+name: Render AI news V3
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/NewsV3.tsx'
+      - 'src/v3-index.ts'
+      - 'scripts/make-v3-voice.py'
+      - '.github/workflows/render-v3.yml'
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install tools and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libxkbcommon0 fonts-liberation ffmpeg
+          npm install --no-audit --no-fund
+          pip install edge-tts==7.2.7
+          npx remotion browser ensure
+      - name: Generate English voiceover
+        run: python scripts/make-v3-voice.py
+      - name: Validate narration length
+        run: |
+          for f in public/v3/*.mp3; do echo "$f"; ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 "$f"; done
+      - name: Render V3 vertical MP4
+        run: |
+          mkdir -p out
+          npx remotion render src/v3-index.ts NewsV3 out/ai-news-v3.mp4 --codec h264 --crf 20 --concurrency 2
+      - name: Render QA stills
+        run: |
+          npx remotion still src/v3-index.ts NewsV3 out/v3-01.png --frame 210
+          npx remotion still src/v3-index.ts NewsV3 out/v3-02.png --frame 700
+          npx remotion still src/v3-index.ts NewsV3 out/v3-03.png --frame 1330
+          npx remotion still src/v3-index.ts NewsV3 out/v3-04.png --frame 1990
+      - name: Upload finished video and stills
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-tech-news-v3
+          path: |
+            out/ai-news-v3.mp4
+            out/v3-*.png
+          retention-days: 7
+          if-no-files-found: error
