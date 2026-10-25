@@ -154,9 +154,7 @@ const World: React.FC = () => {
     transformOrigin:'0 0',
     backgroundColor:C.bg,
   }}>
-    <div style={{position:'absolute', left:45, top:170, fontSize:19, fontWeight:800, color:'#5F6F62', letterSpacing:5}}>SIGNAL STUDIO / MOTION TEST 02</div>
     <div style={{position:'absolute', left:180, top:1370, right:160, borderTop:'2px dashed #3F5045'}} />
-    <div style={{position:'absolute', left:50, top:1470, color:'#7D8B80', fontSize:20, letterSpacing:2}}>DEMO / EDUCATIONAL CONTENT · NOT A CURRENT NEWS HEADLINE</div>
     <div style={{position:'absolute', left:markerX, top:1365, width:15, height:15, backgroundColor:C.accent, borderRadius:99}}/>
     <Intro/>
     <Editorial/>
