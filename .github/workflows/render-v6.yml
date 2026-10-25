@@ -51,7 +51,8 @@ jobs:
           npx remotion render src/v6-index.ts NewsV6 out/ai-news-v6.mp4 --codec h264 --crf 21 --concurrency 2
       - name: Capture video-wide QA frames
         run: |
-          for frame in 40 145 265 390 510 650 790 920 1050 1180 1340 1470 1570 1720; do
+          last_frame=$(python -c 'import json; print(json.load(open("src/v4-timing.json"))["totalFrames"]-15)')
+          for frame in 40 145 265 390 510 650 790 920 1050 1180 1340 1470 1570 "$last_frame"; do
             npx remotion still src/v6-index.ts NewsV6 out/v6-qa-$frame.png --frame "$frame"
           done
       - name: Validate the MP4 video and audio
