@@ -1,13 +1,14 @@
-# V5 editorial visual asset register
+# V5 production asset and authenticity register
 
-These are licensed Pexels photographic images used as **illustrative B-roll**, not source evidence or pictures of the named companies. Do not imply that people, locations or products shown are connected to the narrated stories. The current stories are **test scripts** and not approved for publication.
+The V5 visual system is **100% self-contained Remotion graphics**: no Pexels, stock photographs, remote image downloads, external video-footage APIs, or invented source screenshots.
 
-Assets are downloaded once per GitHub Actions run. References checked against Pexels pages and its license (https://www.pexels.com/license/):
+The five visual worlds illustrate:
+1. **Kimi:** a context-window/document flow.
+2. **OpenAI fundraising:** a conceptual network of funding participants.
+3. **OpenAI model security:** isolated access boundaries.
+4. **DeepSeek fundraising:** illustrative capital bars and growth direction. Bars **are not historical financial data**.
+5. **Anthropic:** code-like lines receiving bounded verification marks. **These are not real library sources**.
 
-- server.jpg — Brett Sayles, https://www.pexels.com/photo/server-racks-on-data-center-4508751/
-- business.jpg — Mikhail Nilov, https://www.pexels.com/photo/a-man-and-a-woman-shaking-hands-9301879/
-- security.jpg — Brett Sayles, https://www.pexels.com/photo/server-racks-on-data-center-5408005/
-- network.jpg — Brett Sayles, https://www.pexels.com/photo/server-racks-on-data-center-5480781/
-- code.jpg — Julien BRION, https://www.pexels.com/photo/macbook-pro-102061/
+Narration, approved script and phrase timings are inherited from V4 (Kokoro ONNX). Original date and financial claims still require source verification; this is a visual quality test, **not a cleared publication**.
 
-The article-style cards are original editorial graphics and are *not* quoted screenshots or real article extracts. Numbers and dates are retained from the V4 test script; reverify every claim before posting. Voice and timecode content are generated unchanged from V4.
+Composition: `src/NewsV5.tsx`, 1080×1920, 30fps. Rendered completely remotely via `.github/workflows/render-v5.yml`. No local laptop required.
