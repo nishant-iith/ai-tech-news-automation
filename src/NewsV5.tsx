@@ -1,25 +1,61 @@
 import React from 'react';
-import {AbsoluteFill, Audio, Composition, Img, Sequence, interpolate, Easing, staticFile, useCurrentFrame} from 'remotion';
+import {AbsoluteFill, Audio, Composition, Sequence, interpolate, Easing, staticFile, useCurrentFrame} from 'remotion';
 import timing from './v4-timing.json';
 
 // V5 uses V4's approved voice, phrase timings, and script unchanged.
 // Pexels imagery is illustrative B-roll, NOT footage of named companies or their products.
 // All editorial claims are inherited test copy and MUST be verified before publication.
 const stories=[
- {company:'MOONSHOT AI',title:'KIMI K3.1 PRO',date:'OCT 24',color:'#C8F88B',accent:'LONG CONTEXT',label:'01',img:'server.jpg',credit:'Brett Sayles / Pexels',source:'REUTERS · CLAIM RECHECK REQUIRED'},
- {company:'OPENAI',title:'FUNDING TALKS',date:'OCT 24 REPORT',color:'#97D6DD',accent:'THE FUNDING RACE',label:'02',img:'business.jpg',credit:'Mikhail Nilov / Pexels',source:'REPORTS · TERMS UNCONFIRMED'},
- {company:'OPENAI',title:'TRAINING SECURITY',date:'OCT 23–24',color:'#E9CA85',accent:'MODEL ISOLATION',label:'03',img:'security.jpg',credit:'Brett Sayles / Pexels',source:'COVERAGE · CLAIM RECHECK REQUIRED'},
- {company:'DEEPSEEK',title:'AI INVESTMENT',date:'OCT 24 REPORT',color:'#D8BDF0',accent:'CAPITAL AT SCALE',label:'04',img:'network.jpg',credit:'Brett Sayles / Pexels',source:'REPORTS · CLAIM RECHECK REQUIRED'},
- {company:'ANTHROPIC',title:'PROVING CODE',date:'OCT 22',color:'#E7A995',accent:'SOFTWARE VERIFICATION',label:'05',img:'code.jpg',credit:'Julien BRION / Pexels',source:'ANTHROPIC · LIMITATIONS APPLY'},
+ {company:'MOONSHOT AI',title:'KIMI K3.1 PRO',date:'OCT 24',color:'#C8F88B',accent:'LONG CONTEXT',label:'01',source:'REUTERS · CLAIM RECHECK REQUIRED'},
+ {company:'OPENAI',title:'FUNDING TALKS',date:'OCT 24 REPORT',color:'#97D6DD',accent:'THE FUNDING RACE',label:'02',source:'REPORTS · TERMS UNCONFIRMED'},
+ {company:'OPENAI',title:'TRAINING SECURITY',date:'OCT 23–24',color:'#E9CA85',accent:'MODEL ISOLATION',label:'03',source:'COVERAGE · CLAIM RECHECK REQUIRED'},
+ {company:'DEEPSEEK',title:'AI INVESTMENT',date:'OCT 24 REPORT',color:'#D8BDF0',accent:'CAPITAL AT SCALE',label:'04',source:'REPORTS · CLAIM RECHECK REQUIRED'},
+ {company:'ANTHROPIC',title:'PROVING CODE',date:'OCT 22',color:'#E7A995',accent:'SOFTWARE VERIFICATION',label:'05',source:'ANTHROPIC · LIMITATIONS APPLY'},
 ];
 const dark='#10181D', light='#F7F5EF', mut='#A7B2AE';
 const clamp={extrapolateLeft:'clamp' as const,extrapolateRight:'clamp' as const};
 const tween=(f:number,x:number[],y:number[])=>interpolate(f,x,y,{...clamp,easing:Easing.inOut(Easing.cubic)});
 const caps=(s:React.ReactNode,style:React.CSSProperties={})=><div style={{fontFamily:'Arial, Helvetica, sans-serif',fontWeight:900,letterSpacing:2,...style}}>{s}</div>;
-const Photo:React.FC<{img:string;darken?:number;pan?:number}>=({img,darken=.15,pan=1})=>{const f=useCurrentFrame();return <AbsoluteFill style={{overflow:'hidden',background:dark}}>
- <Img src={staticFile('v5/'+img)} style={{width:'100%',height:'100%',objectFit:'cover',transform:`scale(${tween(f,[0,230],[1.12,1.35])}) translateX(${tween(f,[0,230],[-pan*2,pan*2])}%)`,filter:'saturate(.66) contrast(1.13)'}}/>
- <AbsoluteFill style={{background:`linear-gradient(180deg,rgba(8,15,18,.52),rgba(8,15,18,${darken}) 40%,rgba(8,15,18,.88))`}}/>
- </AbsoluteFill>};
+// Original programmatic visuals only; no stock images, invented screenshots, or remote B-roll.
+const VisualWorld:React.FC<{idx:number;darken?:number}>=({idx,darken=.28})=>{
+ const f=useCurrentFrame(), color=stories[idx].color;
+ const progress=tween(f,[0,110],[0,1]);
+ return <AbsoluteFill style={{background:'#0C171C',overflow:'hidden'}}>
+  <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(#ffffff10 1px,transparent 1px),linear-gradient(90deg,#ffffff10 1px,transparent 1px)',backgroundSize:'84px 84px',transform:'translate('+(-f*.28)+'px,'+(-f*.14)+'px)'}}/>
+  <svg viewBox="0 0 1080 1920" width="1080" height="1920" style={{position:'absolute',inset:0}}>
+   {idx===0&&<g>
+    <rect x="120" y="470" width="840" height="740" rx="20" fill="#193038" stroke={color} strokeWidth="5"/>
+    {Array.from({length:42},(_,i)=><g key={i}>
+     <rect x={155+i%7*111} y={530+Math.floor(i/7)*100} width="85" height="65" rx="6" fill={i/42<progress?color:'#4A6970'} opacity={i/42<progress?.86:.35}/>
+     <path d={'M'+(167+i%7*111)+' '+(554+Math.floor(i/7)*100)+' h54'} stroke="#173338" strokeWidth="8"/></g>)}
+    <path d="M540 1210 V1510" stroke={color} strokeWidth="12" strokeDasharray="35 25" strokeDashoffset={-f*3}/>
+   </g>}
+   {idx===1&&<g>
+    {Array.from({length:12},(_,i)=>{const angle=i*Math.PI/6+f*.003,rad=340;
+     const x=540+rad*Math.cos(angle),y=940+rad*Math.sin(angle);
+     return <g key={i}><line x1="540" y1="940" x2={x} y2={y} stroke={color} strokeWidth="5" opacity=".5"/><circle cx={x} cy={y} r="25" fill={color}/></g>})}
+    <circle cx="540" cy="940" r={115+30*progress} fill="#1A3039" stroke={color} strokeWidth="10"/>
+    <circle cx="540" cy="940" r="52" fill={color}/>
+   </g>}
+   {idx===2&&<g>
+    {Array.from({length:7},(_,i)=><g key={i}><rect x={95+i*132} y="660" width="100" height="100" rx="12" fill="#36565F" stroke={color} strokeWidth="4"/><line x1={145+i*132} y1="760" x2="540" y2="1130" stroke={color} strokeWidth="4" opacity=".4"/></g>)}
+    <rect x="360" y="920" width="360" height="420" rx="22" fill="#152A30" stroke={color} strokeWidth="9"/>
+    <path d="M425 1130 L510 1210 L665 1015" stroke={color} strokeWidth="21" strokeDasharray={(480*progress)+' 480'} fill="none"/>
+   </g>}
+   {idx===3&&<g>
+    {Array.from({length:9},(_,i)=><rect key={i} x={80+i*104} y={1470-(290+i*73)*progress} width="77" height={Math.max(2,(290+i*73)*progress)} fill={i===8?color:'#72919C'} opacity=".82"/>)}
+    <path d="M95 980 Q320 670 540 860 T980 480" fill="none" stroke={color} strokeWidth="14" strokeDasharray="35 23" strokeDashoffset={-f*3}/>
+   </g>}
+   {idx===4&&<g>
+    <rect x="110" y="480" width="860" height="970" rx="18" fill="#162930" stroke={color} strokeWidth="6"/>
+    {Array.from({length:15},(_,i)=><g key={i}><rect x={153+i%3*25} y={560+i*53} width={300+i%5*85} height="15" rx="6" fill={i%3===0?color:'#809A9E'} opacity={i/15<progress?1:.28}/>
+     {i%3===0&&i/15<progress&&<path d={'M780 '+(566+i*53)+' l17 17 l28 -34'} fill="none" stroke={color} strokeWidth="7"/>}</g>)}
+   </g>}
+  </svg>
+  <AbsoluteFill style={{background:'linear-gradient(180deg,rgba(8,15,18,.52),rgba(8,15,18,'+darken+') 44%,rgba(8,15,18,.93))'}}/>
+  <div style={{position:'absolute',bottom:420,left:70,fontFamily:'Arial,sans-serif',fontSize:21,color,letterSpacing:3,fontWeight:900}}>SCHEMATIC · ORIGINAL MOTION GRAPHICS</div>
+ </AbsoluteFill>
+};
 const Source:React.FC<{company:string;color:string;index:string;source:string}>=({company,color,index,source})=><>
  <div style={{position:'absolute',top:90,left:66,right:66,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
  {caps('SIGNAL  /  AI NEWS',{fontSize:24,color:light,letterSpacing:4})}
@@ -28,7 +64,7 @@ const Source:React.FC<{company:string;color:string;index:string;source:string}>=
  <span>{company}</span><span style={{textAlign:'right'}}>{source}</span></div>
  </>;
 const NewsFrame:React.FC<{idx:number;children:React.ReactNode;darken?:number}>=({idx,children,darken})=>{const m=stories[idx];return <AbsoluteFill style={{background:dark,color:light,fontFamily:'Arial, Helvetica, sans-serif',overflow:'hidden'}}>
- <Photo img={m.img} darken={darken}/>{children}
+ <VisualWorld idx={idx} darken={darken}/>{children}
  <Source company={m.company} color={m.color} index={m.label} source={m.source}/>
  </AbsoluteFill>};
 const Statistic:React.FC<{n:string;label:string;color:string;prefix?:string}>=({n,label,color,prefix})=>{const f=useCurrentFrame();return <div style={{position:'relative',width:'100%',textAlign:'left'}}>
@@ -41,7 +77,7 @@ const PhotoHook:React.FC<{idx:number}>=({idx})=>{const f=useCurrentFrame();const
  {caps(m.accent,{fontSize:29,color:m.color,letterSpacing:6,marginBottom:42,opacity:tween(f,[0,15],[0,1])})}
  <div style={{height:8,width:tween(f,[0,22],[0,120]),background:m.color,marginBottom:45}}/>
  <div style={{fontSize:121,fontWeight:900,lineHeight:.98,letterSpacing:-5,textShadow:'0 5px 20px #0008',opacity:tween(f,[0,21],[0,1])}}>{m.title}</div>
- <div style={{marginTop:58,color:light,fontSize:24,letterSpacing:3}}>ILLUSTRATIVE PHOTO  ·  {m.date}</div>
+ <div style={{marginTop:58,color:light,fontSize:24,letterSpacing:3}}>ORIGINAL ANIMATION  ·  {m.date}</div>
  </div></NewsFrame>};
 const Article:React.FC<{color:string;headline:string;body:string;eyebrow:string}>=({color,headline,body,eyebrow})=>{const f=useCurrentFrame();return <div style={{position:'absolute',top:325,left:75,right:75,bottom:595,borderRadius:10,background:'#F6F4EC',color:'#142229',padding:'55px 58px',boxShadow:'0 12px 40px #0009',boxSizing:'border-box',transform:`rotate(${tween(f,[0,40],[2,0])}deg) translateY(${tween(f,[0,25],[70,0])}px)`}}>
  <div style={{display:'flex',justifyContent:'space-between',gap:18,fontWeight:900,fontSize:21,letterSpacing:3}}><span>THE BRIEFING</span><span>{eyebrow}</span></div>
@@ -104,7 +140,7 @@ const Story:React.FC<{idx:number;section:typeof timing.sections[number]}>=({idx,
  <Audio src={staticFile('v4/'+(idx+1)+'.wav')}/>
  </AbsoluteFill>;
 const Intro:React.FC<{section:typeof timing.sections[number];outro:boolean}>=({section,outro})=>{const f=useCurrentFrame();return <AbsoluteFill style={{background:dark,fontFamily:'Arial, sans-serif',color:light,overflow:'hidden'}}>
- <Photo img={outro?'code.jpg':'server.jpg'} darken={.48}/>
+ <VisualWorld idx={outro?4:0} darken={.48}/>
  <div style={{position:'absolute',left:70,right:70,top:420}}>
  {caps('SIGNAL / AI NEWS',{fontSize:37,color:'#C8F88B',letterSpacing:6})}
  <div style={{fontSize:160,lineHeight:.97,fontWeight:900,letterSpacing:-8,marginTop:80,whiteSpace:'pre-line'}}>{outro?'STAY\nAHEAD.':'FIVE\nAI STORIES.'}</div>
