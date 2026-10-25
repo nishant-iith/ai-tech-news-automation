@@ -1,0 +1,81 @@
+name: Render AI News V6 - Minimal Light Editorial
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/NewsV6.tsx'
+      - 'src/v6-index.ts'
+      - '.github/workflows/render-v6.yml'
+permissions:
+  contents: read
+concurrency:
+  group: minimal-v6-main
+  cancel-in-progress: true
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg libnss3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libxkbcommon0 fonts-liberation libsndfile1
+      - name: Install Remotion and offline speech generation
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install --disable-pip-version-check 'kokoro-onnx==0.6.1' 'soundfile>=0.12,<1' 'numpy>=2,<3'
+          npx remotion browser ensure
+      - name: Download free Kokoro model to remote GitHub runner
+        run: |
+          mkdir -p models
+          curl --fail --location --retry 3 --output models/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
+          curl --fail --location --retry 3 --output models/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
+          test "$(stat -c%s models/kokoro-v1.0.onnx)" -gt 100000000
+      - name: Reproduce V4 narration and exact cue timings
+        run: python scripts/make-v4-voice.py
+      - name: Check the existing narration and timeline
+        run: python scripts/check-v4.py pre
+      - name: Typecheck V6
+        run: npm run typecheck
+      - name: Render clean minimalist 1080x1920 vertical video
+        run: |
+          mkdir -p out
+          npx remotion render src/v6-index.ts NewsV6 out/ai-news-v6.mp4 --codec h264 --crf 21 --concurrency 2
+      - name: Capture video-wide QA frames
+        run: |
+          for frame in 40 145 265 390 510 650 790 920 1050 1180 1340 1470 1570 1720; do
+            npx remotion still src/v6-index.ts NewsV6 out/v6-qa-$frame.png --frame "$frame"
+          done
+      - name: Validate the MP4 video and audio
+        run: |
+          test "$(stat -c%s out/ai-news-v6.mp4)" -gt 1000000
+          ffprobe -v error -show_entries format=duration:stream=codec_name,width,height -of json out/ai-news-v6.mp4 | tee out/v6-info.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          probe=json.loads(Path('out/v6-info.json').read_text())
+          assert any(s.get('codec_name')=='h264' and s.get('width')==1080 and s.get('height')==1920 for s in probe['streams'])
+          assert any(s.get('codec_name')=='aac' for s in probe['streams'])
+          assert float(probe['format']['duration'])>45
+          assert len(list(Path('out').glob('v6-qa-*.png')))>=14
+          print('V6 passes media checks')
+          PY
+      - name: Save V6 video and visual QA frames
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-tech-news-v6-light
+          path: |
+            out/ai-news-v6.mp4
+            out/v6-qa-*.png
+            out/v6-info.json
+            src/v4-timing.json
+          if-no-files-found: error
+          retention-days: 14
