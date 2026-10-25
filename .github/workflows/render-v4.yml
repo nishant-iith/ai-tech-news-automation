@@ -1,0 +1,80 @@
+name: Render AI news V4 fully remotely
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/NewsV4.tsx'
+      - 'src/v4-index.ts'
+      - 'src/v4-timing.json'
+      - 'scripts/make-v4-voice.py'
+      - 'scripts/check-v4.py'
+      - '.github/workflows/render-v4.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: news-v4-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libnss3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libxkbcommon0 fonts-liberation libsndfile1 espeak-ng
+      - name: Install build dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install --disable-pip-version-check 'kokoro-onnx==0.6.1' 'soundfile>=0.12,<1' 'numpy>=2,<3'
+          npx remotion browser ensure
+      - name: Download Kokoro voice model to GitHub runner
+        run: |
+          mkdir -p models
+          curl --fail --location --retry 3 --retry-delay 4 --output models/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
+          curl --fail --location --retry 3 --retry-delay 4 --output models/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
+          test "$(stat -c%s models/kokoro-v1.0.onnx)" -gt 100000000
+          test "$(stat -c%s models/voices-v1.0.bin)" -gt 10000000
+      - name: Generate natural offline narration and timed storyboard
+        run: python scripts/make-v4-voice.py
+      - name: Validate narration and shot timing
+        run: python scripts/check-v4.py pre
+      - name: Typecheck Remotion
+        run: npm run typecheck
+      - name: Render V4 at 1080 by 1920
+        run: |
+          mkdir -p out
+          npx remotion render src/v4-index.ts NewsV4 out/ai-news-v4.mp4 --codec h264 --crf 21 --concurrency 2
+      - name: Render visual QA frames
+        run: |
+          npx remotion still src/v4-index.ts NewsV4 out/v4-shot01.png --frame 180
+          npx remotion still src/v4-index.ts NewsV4 out/v4-shot02.png --frame 450
+          npx remotion still src/v4-index.ts NewsV4 out/v4-shot03.png --frame 720
+          npx remotion still src/v4-index.ts NewsV4 out/v4-shot04.png --frame 960
+      - name: Check finished output
+        run: python scripts/check-v4.py post
+      - name: Upload reviewable MP4 and QA images
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-tech-news-v4
+          path: |
+            out/ai-news-v4.mp4
+            out/v4-shot*.png
+            src/v4-timing.json
+          if-no-files-found: error
+          retention-days: 14
