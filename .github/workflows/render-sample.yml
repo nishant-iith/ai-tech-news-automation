@@ -1,0 +1,42 @@
+name: Render sample Remotion video
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - '.github/workflows/render-sample.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Linux browser libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libxkbcommon0 fonts-liberation
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Remotion browser
+        run: npx remotion browser ensure
+      - name: Render vertical sample
+        run: npm run render
+      - name: Upload video as downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: remotion-tech-news-sample
+          path: out/sample.mp4
+          if-no-files-found: error
+          retention-days: 7
