@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'scripts/**'
       - 'package.json'
       - '.github/workflows/render-sample.yml'
 
@@ -15,9 +16,9 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -27,16 +28,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libxkbcommon0 fonts-liberation
-      - name: Install project dependencies
+      - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Install Remotion browser
         run: npx remotion browser ensure
-      - name: Render vertical sample
+      - name: Render sample with audio
         run: npm run render
-      - name: Upload video as downloadable artifact
+      - name: Render QA stills
+        run: |
+          npx remotion still src/index.ts TechNewsPreview out/check-01.png --frame 60
+          npx remotion still src/index.ts TechNewsPreview out/check-02.png --frame 243
+          npx remotion still src/index.ts TechNewsPreview out/check-03.png --frame 420
+      - name: Upload video + QA stills
         uses: actions/upload-artifact@v4
         with:
-          name: remotion-tech-news-sample
-          path: out/sample.mp4
+          name: remotion-tech-news-sample-v2
+          path: |
+            out/sample.mp4
+            out/check-*.png
           if-no-files-found: error
           retention-days: 7

@@ -1,11 +1,13 @@
 {
   "name": "ai-tech-news-automation",
   "private": true,
-  "version": "0.1.0",
-  "description": "Minimal vertical tech news video proof of concept using Remotion",
+  "version": "0.2.0",
+  "description": "Skill-driven Remotion vertical motion study",
   "scripts": {
     "dev": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts TechNewsPreview out/sample.mp4 --codec h264 --crf 20 --concurrency 2"
+    "sound": "node scripts/make-sound.cjs",
+    "render": "npm run sound && remotion render src/index.ts TechNewsPreview out/sample.mp4 --codec h264 --crf 20 --concurrency 2",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@remotion/cli": "4.0.538",
