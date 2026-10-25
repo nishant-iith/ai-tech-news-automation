@@ -1,4 +1,4 @@
-name: Render AI news V5 cinematic test
+name: Render AI news V5 original motion graphics
 on:
   workflow_dispatch:
   push:
@@ -39,18 +39,6 @@ jobs:
           curl --fail --location --retry 3 --output models/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
           curl --fail --location --retry 3 --output models/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
           test "$(stat -c%s models/kokoro-v1.0.onnx)" -gt 100000000
-      - name: Download licensed editorial photography (Pexels)
-        run: |
-          mkdir -p public/v5
-          curl --fail -L --retry 3 -A 'Mozilla/5.0' --output public/v5/server.jpg 'https://images.pexels.com/photos/4508751/pexels-photo-4508751.jpeg?auto=compress&cs=tinysrgb&w=1400'
-          curl --fail -L --retry 3 -A 'Mozilla/5.0' --output public/v5/business.jpg 'https://images.pexels.com/photos/9301879/pexels-photo-9301879.jpeg?auto=compress&cs=tinysrgb&w=1400'
-          curl --fail -L --retry 3 -A 'Mozilla/5.0' --output public/v5/security.jpg 'https://images.pexels.com/photos/5408005/pexels-photo-5408005.jpeg?auto=compress&cs=tinysrgb&w=1400'
-          curl --fail -L --retry 3 -A 'Mozilla/5.0' --output public/v5/network.jpg 'https://images.pexels.com/photos/5480781/pexels-photo-5480781.jpeg?auto=compress&cs=tinysrgb&w=1400'
-          curl --fail -L --retry 3 -A 'Mozilla/5.0' --output public/v5/code.jpg 'https://images.pexels.com/photos/102061/pexels-photo-102061.jpeg?auto=compress&cs=tinysrgb&w=1400'
-          for f in public/v5/*.jpg; do
-            test "$(stat -c%s "$f")" -gt 30000 || exit 1
-            identify "$f" || exit 1
-          done
       - name: Generate exact V4 voice script and phrase timings
         run: python scripts/make-v4-voice.py
       - name: Verify voice and scene alignment
