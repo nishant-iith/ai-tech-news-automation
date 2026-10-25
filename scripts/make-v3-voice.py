@@ -1,6 +1,8 @@
 import asyncio
 from pathlib import Path
 import edge_tts
+import subprocess
+import tempfile
 
 LINES = {
  'intro': 'Five AI stories worth knowing, in our October twenty fifth briefing.',
@@ -14,5 +16,11 @@ LINES = {
 async def main():
  folder=Path('public/v3');folder.mkdir(parents=True,exist_ok=True)
  for name, speech in LINES.items():
-  await edge_tts.Communicate(speech,voice='en-US-AndrewNeural',rate='+7%').save(str(folder/f'{name}.mp3'))
+  try:
+   await edge_tts.Communicate(speech,voice='en-US-AndrewNeural',rate='+7%').save(str(folder/f'{name}.mp3'))
+  except Exception as exc:
+   print(f'Neural TTS unavailable for {name}: {type(exc).__name__}. Using offline fallback.',flush=True)
+   with tempfile.NamedTemporaryFile(suffix='.wav') as temp:
+    subprocess.run(['espeak-ng','-v','en-us','-s','165','-w',temp.name,speech],check=True)
+    subprocess.run(['ffmpeg','-y','-loglevel','error','-i',temp.name,'-codec:a','libmp3lame','-qscale:a','3',str(folder/f'{name}.mp3')],check=True)
 asyncio.run(main())
